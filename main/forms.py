@@ -5,6 +5,11 @@ from django.core import validators
 
 
 class UserRegisterForm(forms.ModelForm):
+    def __init__(self,*args,**kwargs):
+        super(UserRegisterForm, self).__init__(*args,**kwargs)
+        self.fields['login'].widget.attrs['required']=''
+        self.fields['email'].widget.attrs['required']=''
+        self.fields['password'].widget.attrs['required']=''
     class Meta:
         model=User
         fields=('login','email','password')
@@ -17,15 +22,16 @@ class UserRegisterForm(forms.ModelForm):
             'password': forms.PasswordInput()
         }
 
-    confirmpassword = forms.CharField(label='Potwierdz haslo', widget=forms.PasswordInput())
+
+    confirmpassword = forms.CharField(label='Potwierdz haslo', widget=forms.PasswordInput(attrs={'required': ''}))
 
 
 
 class ProjectRegisterForm(forms.Form):
-    title=forms.CharField(label='Nazwa projektu',widget=forms.TextInput(attrs={'class': 'form-control'}))
-    short_description=forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
-    funding_goal=forms.IntegerField(label='Oczekiwana kwota wsparcia', widget=forms.NumberInput(attrs={'class': 'form-control','style': 'width: 500px', 'min': '1', 'max': '1000000', 'step': '1','type':'range','value':'1','onmousemove': 'valuechange()'}))
-    description=forms.CharField(label='Opis projektu', widget=forms.Textarea(attrs={'style':'height: 0;visibility: collapse'}))
+    title=forms.CharField(label='Nazwa projektu',widget=forms.TextInput(attrs={'class': 'form-control', 'required': ''}))
+    short_description=forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'required': ''}))
+    funding_goal=forms.IntegerField(label='Oczekiwana kwota wsparcia', widget=forms.NumberInput(attrs={'min': '0,01', 'max': '100000', 'step': '1','type':'Number','value':'0','onmousemove': 'valuechange()', 'required': ''}))
+    description=forms.CharField(label='Opis projektu', widget=forms.Textarea(attrs={'style':'height: 0;visibility: collapse', 'required': ''}))
     category=forms.ModelChoiceField(queryset=Category.objects.all(),label='Kategoria',initial=1)
 
 class ProjectPerks(forms.Form):
@@ -38,10 +44,19 @@ class ComentForm(forms.ModelForm):
         fields = ('content',)
 
 class Signin(forms.ModelForm):
+    def __init__(self,*args,**kwargs):
+        super(Signin, self).__init__(*args,**kwargs)
+        self.fields['login'].widget.attrs['required']=''
+        self.fields['password'].widget.attrs['required']=''
     class Meta:
         model=User
         fields=('login','password',)
-
+        widgets={
+            'password': forms.PasswordInput(),
+        }
+        labels={
+            'password': 'Hasło'
+        }
 class SupportForm(forms.ModelForm):
     class Meta:
         model=Perk

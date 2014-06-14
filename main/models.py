@@ -33,6 +33,7 @@ class Project(models.Model):
         auto_now_add=True)  #Automatically set the field to now when the object is first created. Useful for creation of timestamps
     last_update = models.DateTimeField(
         auto_now=True)  #Automatically set the field to now every time the object is saved. Useful for 'last-modified' timestamps
+    overalrating=models.FloatField(default=0)
     ban = models.BooleanField(default=False)
     visit_counter = models.IntegerField(default=0)
     category = models.ForeignKey(Category)

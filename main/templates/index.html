@@ -12,11 +12,6 @@
       <div align="center"><img src="http://www32.speedyshare.com/jAbhE/download/logo.jpg" alt="logo"></div>
 
         <div align="center">
-		    <p><br/><br/>Krótki opis jak portal działa Krótki opis jak portal działa Krótki opis jak portal działa Krótki opis jak portal działa<br/>
-                Krótki opis jak portal działa Krótki opis jak portal działa Krótki opis jak portal działa Krótki opis jak portal działa <br/>
-                Krótki opis jak portal działa Krótki opis jak portal działa Krótki opis jak portal działa Krótki opis jak portal działa <br/>
-            </p>
-
         </div>
         <p> </p>
         <div align="center">
@@ -37,21 +32,21 @@
     <div class="panel-body">
         <div class="row">
 
-            {% for project in deadline_project_list %}
+            {% for projectdictionary in deadline_project_list %}
             <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
-                    <img src="http://www32.speedyshare.com/9PAy7/download/obrazek300x200.jpg" alt="jakis obrazek">
+                    <a href="{% url 'project' projectdictionary.Project.id %}"><img  src="{{STATIC_URL }}{{ projectdictionary.Atachment.url }}" alt="Projekt"></a>
                     <div class="caption">
-                        <h3><a href="{% url 'project' project.id %}">{{project.title}}</a></h3>
-                        <p>{{project.short_description}} </p>
+                        <h3><a href="{% url 'project' projectdictionary.Project.id %}">{{projectdictionary.Project.title}}</a></h3>
+                        <p>{{projectdictionary.Project.short_description}} </p>
                         <p><div class="progress progress-striped">
                         <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: {{project.percentage}}%">
-                        <span class="sr-only">{{project.percentage}} Complete (success)</span>
+                        <span class="sr-only">{{projectdictionary.Project.percentage}} Complete (success)</span>
                         </div>
                         </div></p>
-                         <p> {{ project.toEnd }} dni {{ project.percentage}}% ({{project.money_raised}}/{{project.funding_goal}} zł)</p>
+                         <p> {{ projectdictionary.Project.toEnd }} dni {{ projectdictionary.Project.percentage}}% ({{projectdictionary.Project.money_raised}}/{{projectdictionary.Project.funding_goal}} zł)</p>
                         {% if request.session.user %}
-                            <p><a href="{% url 'support' project.id %}" class="btn btn-primary" role="button">Wesprzyj</a></p>
+                            <p><a href="{% url 'support' projectdictionary.Project.id %}" class="btn btn-primary" role="button">Wesprzyj</a></p>
                         {% endif %}
                     </div>
                 </div>
@@ -70,20 +65,22 @@
     <div class="panel-body">
         <div class="row">
 
-            {% for project in popular_project_list %}
+            {% for projectdictionary  in popular_project_list %}
             <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
-                    <img src="http://www32.speedyshare.com/9PAy7/download/obrazek300x200.jpg" alt="jakis obrazek">
+                        <a href="{% url 'project' projectdictionary.Project.id %}"><img  src="{{STATIC_URL }}{{ projectdictionary.Atachment.url }}" alt="Projekt"></a>
                     <div class="caption">
-                        <h3><a href="{% url 'project' project.id %}">{{project.title}}</a></h3>
-                        <p>{{project.short_description}} </p>
+                        <h3><a href="{% url 'project' projectdictionary.Project.id %}">{{projectdictionary.Project.title}}</a></h3>
+                        <p>{{projectdictionary.Project.short_description}} </p>
                         <p><div class="progress progress-striped">
                         <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: {{project.percentage}}%">
-                        <span class="sr-only">{{project.percentage}} Complete (success)</span>
+                        <span class="sr-only">{{projectdictionary.Project.percentage}} Complete (success)</span>
                         </div>
                         </div></p>
-                        <p> {{ project.toEnd }} dni {{ project.percentage}}% ({{project.money_raised}}/{{project.funding_goal}} zł)</p>
-                        <p><a href="#" class="btn btn-primary" role="button">Wesprzyj</a>
+                        <p> {{ projectdictionary.Project.toEnd }} dni {{ projectdictionary.Project.percentage}}% ({{projectdictionary.Project.money_raised}}/{{projectdictionary.Project.funding_goal}} zł)</p>
+                        {% if request.session.user %}
+                            <p><a href="{% url 'support' projectdictionary.Project.id %}" class="btn btn-primary" role="button">Wesprzyj</a></p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -93,7 +90,7 @@
     </div>
 </div>
 
-<div><a href="{% url 'projects' %}" class="btn btn-primary" role="button" style="width:100%"><h4>Przeglądaj wszytskie projekty</h4></a></div>
+<div><a href="{% url 'projects' %}" class="btn btn-primary" role="button" style="width:100%"><h4>Przeglądaj wszystkie projekty</h4></a></div>
 
 
 {% endblock %}

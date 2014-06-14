@@ -3,11 +3,12 @@
 Edytuj projekt
 {% endblock %}
 {% block content %}
+    <script type="text/javascript" src="{{ STATIC_URL }}calendar.js"></script>
     <div xmlns="http://www.w3.org/1999/html">
     <h1>Edytuj projekt</h1>
         <form method="post" enctype="multipart/form-data" action="/saveeditedproject/{{projectid}}/">
             {% csrf_token %}
-            <table style="width: 100%">
+           <table style="width: 100%">
                 <tr><td style="width: 45%"><label> Nazwa projektu</label>
                 <td style="width: 55%">{{ formset.title }}</td>
                 </tr>
@@ -18,16 +19,23 @@ Edytuj projekt
                 <tr><td><label>Kategoria projektu</label></td>
                 <td>{{ formset.category }} </td></tr>
                 <tr></tr>
+                <tr><td><label>Data zakończenia projektu</label></td>
+                <td><script>DateInput('date', true, 'DD/MON/YYYY')</script> </td></tr>
+                <tr></tr>
                 <tr><td><label>Wybierz planowaną kwotę do uzbierania</label></td>
-                <td><table><tr><td >{{ formset.funding_goal}}</td><td><input type="text" id="goal"  onchange="valuetextchange();"></td></tr></table></td></tr>
+                <td>{{ formset.funding_goal }}</td></tr>
             </table>
-            <input type="hidden" id="perkindex" value="0">
-            <h4>Progi finansowania</h4>
-            <table style="width: 100%">
-                <tr >
-                    <td style="display: inline-block; width: 45%">
-                        <h6>Progi finansowania</h6>
-                        <div class="perks" id="divperks">
+            <label>Pełny opis projektu:</label>
+            {{ formset.description}}
+            <div>
+                <div id="fulldescription" class="summernote"></div>
+            </div>
+            <input type="hidden" id="perkindex"  value="0">
+         <h4>Progi finansowania</h4>
+         <div class="col-md-16">
+            <div class="col-md-5">
+                        <label>Progi finansowania</label><br>
+                        <div class="perks" style="overflow-y: hidden" id="divperks">
                             {%for perk in perks  %}
                                 <nobr existlabel="{{perk.id}}" >
                                     <div style="display:inline-block;overflow: auto;overflow-y:hidden;width: 70%">
@@ -37,30 +45,19 @@ Edytuj projekt
                                 </nobr>
                             {% endfor %}
                         </div>
-                    </td>
-                    <td style="width: 55%">
+            </div>
+            <br>
+            <div class="col-md-7">
                         <label>Tytuł progu finansowania:</label>
                         <input type="text" id="perktitle" class="form-control" name="perk-perk_description" >
                         <label>Opis progu finansowania:</label>
                         <textarea id="perkdescription" class="form-control" rows="10" name="perk-perk_description" cols="40"></textarea>
-                        <table style="width: 100%">
-                           <tr>
-                               <td>
-                                <label>Kwota progu finansowania:</label>
-                               </td>
-                               <td></td>
-                           </tr>
-                            <tr>
-                                <td style="width: 75%" >
-                                    <input id="perkvalue" class="form-control" type="range" value="0" style="width: 500px" step="1" onchange="perkvaluechange('#perk','#perkvalue');" onmousemove="perkvaluechange('#perk','#perkvalue');" name="perk-perk_value" min="0" max="1000000">
-                                </td>
-                                <td style="width: 25%">
-                                    <input type="text" id="perk"  value="0" onchange="perkvaluechange('#perkvalue','#perk');">
-                                </td>
-                            </tr>
+                        <label>Kwota progu finansowania:</label><br>
+                        <input type="number" step="0.01" id="perkvalue" name="perkvalue" min="0" max="100000" value="0.01">
+                        <table>
                             <tr>
                                 <td>
-                                    <input id="giftamountcheckbox" type="checkbox" onchange="giftamountchange()" ><label>Limit nagród</label>
+                                    <input id="giftamountcheckbox" type="checkbox" onchange="giftamountchange()"><label>Limit nagród</label>
                                 </td>
                                 <td>
 
@@ -73,32 +70,24 @@ Edytuj projekt
                                <td></td>
                             </tr>
                             <tr id="giftamountvalue">
-                                <td style="width: 75%" >
-                                    <input id="perkavaliable" class="form-control" type="range" value="0" style="width: 500px" step="1" onchange="perkvaluechange('#perkamount','#perkavaliable');" onmousemove="perkvaluechange('#perkamount','#perkavaliable');" name="perk-perk_value" min="0" max="10000">
+                                <td  >
+                                    <input id="perkamount" name="perkavaliable" class="form-control" type="number" value="0" step="1"  name="perkamount" min="0" max="10000">
                                 </td>
-                                <td style="width: 25%">
-                                    <input type="text" id="perkamount"  value="0" onchange="perkvaluechange('#perkavaliable','#perkamount');">
+                                <td>
                                 </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <input type="button" value="Dodaj próg finansowy" onclick="addperk();">
+                                    <input type="button"  class="btn btn-primary" value="Dodaj próg finansowy" onclick="addperk();">
                                 </td>
                                 <td></td>
                             </tr>
                         </table>
-                    </td>
-                </tr>
-            </table>
-            <label>Pełny opis projektu:</label>
-            {{ formset.description}}
-            <div>
-                <div id="fulldescription" class="summernote"></div>
             </div>
+         </div>
+         <div class="col-md-16">
             <h3>Załączniki</h3>
-            <table style="width: 100%">
-                <tr >
-                    <td style="display: inline; width: 45%">
+            <div class="col-md-5">
                         <h6>Załącznik</h6>
                         <div id="divatachments" >
                             {%for atachment in atachments  %}
@@ -110,8 +99,8 @@ Edytuj projekt
                                 </nobr>
                             {% endfor %}
                         </div>
-                    </td>
-                    <td style="width: 55%">
+            </div>
+            <div class="col-md-7">
                         <input id="urlradio"  checked value="on" name="at" onclick="radioclick();" type="radio">
                         <h5 id="fromurllabel" style="display: inline">Z URL</h5>
                         <input id="urlindex" type="text" disabled style="visibility: collapse;display: inline;width: 0;height: 0" value=0>
@@ -121,15 +110,16 @@ Edytuj projekt
                         <input id="fileradio" name="at" onclick="radioclick();" type="radio">
                         <h5 id="fromfilelabel" style="display: inline">Z pliku</h5>
                         <input id="fileindex" type="text" disabled style="visibility: collapse;display: inline;width: 0;height: 0" value=0>
-                        <input id="file" name="file" file="0" type="file"  disabled width="auto">
+                        <input id="file" name="file" file="0" type="file" disabled width="auto">
                         <div id="divfile" divfile="0"></div>
                         <br>
-                        <input type="button" id="uploadbutton" value="Dodaj załącznik" style="display: inline" onclick="uploadfile();">
-                    </td>
-                </tr>
-            </table>
-            <input onmousedown="a()" type="submit" class="btn btn-default" value="Zapisz zmiany">
-            <input type="reset" class="btn btn-default" value="Anuluj">
+                        <input type="button" class="btn btn-primary" id="uploadbutton" value="Dodaj załącznik" style="display: inline" onclick="uploadfile();">
+             </div>
+          </div>
+            <div class="col-md-10">
+                <input onmousedown="a()" type="submit" class="btn btn-primary" value="Zapisz zmiany">
+                <a href="{{request.META.HTTP_REFERER}}"><input type="button"   class="btn btn-primary" value="Anuluj"></a>
+            </div>
         </form>
     </div>
     <script type="text/javascript">
@@ -149,13 +139,15 @@ Edytuj projekt
               onblur: a()
           });
           giftamountchange();
-          perkvaluechange('#perk','#perkvalue');
-          valuechange();
-          $('#fulldescription').code($('#id_project-description').html());
+          $('[name=date]').val('{{ month }}/{{ day }}/{{ year }}');
+          $('#fulldescription').code($('#id_project-description').val());
+          $('#date_Day_ID').val({{day}});
+          $('#date_Month_ID').val({{month}});
+          $('#date_Year_ID').val({{year}});
+          date_Object.changeMonth(this);
+          date_Object.changeDay(this);
+          date_Object.fixYear(this);
     });
-    var valuechange=function(){$('#goal').val($('#id_project-funding_goal').val());}
-    var perkvaluechange=function(a,b){$(a).val($(b).val());}
-    var valuetextchange=function(){$('#id_project-funding_goal').val($('#goal').val())}
     var radioclick=function(){
         if($('#urlradio').val()=='on')
         {

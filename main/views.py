@@ -11,15 +11,20 @@ from django.template import loader, RequestContext
 from main.models import Category, Project, Comment, User, Perk, Atachment, Donation, Message, ObservedProject, Rating,DailyVisit
 from main.forms import UserUpdateForm, UserCommentForm, UserCategoryForm, UserForm,MessageForm
 from django.db.models import Q, Count
+from pp.settings import STATIC_ROOT,STATIC_URL
 
 
 def index(request):
     template = loader.get_template('index.html')
     now = datetime.now().date()
     deadline_project_list = Project.objects.filter(deadline__gte=now).order_by('deadline')[:3]
+
     popular_project_list = Project.objects.filter(deadline__gte=now).order_by('-visit_counter')[:3]
+    popular_project=list()
+    deadline_project=list()
     #wyswietla tylko prjekty niezakonczone, posortowane wzgledem licznika odwiedzin malejąco
     for p in deadline_project_list:
+        deadline_project_dictionary={}
         perc = (p.money_raised / p.funding_goal) * 100
         percentage = int(perc)
         diff = p.deadline - now
@@ -28,8 +33,22 @@ def index(request):
             daysLeft = 0
         setattr(p, 'toEnd', daysLeft)
         setattr(p, 'percentage', percentage)
-
+        atachments=Atachment.objects.filter(project=p)
+        hasatachment=False
+        for a in atachments:
+            if "jpg" in a.url or 'png' in a.url or 'gif' in a.url:
+                deadline_project_dictionary['Atachment']=a
+                hasatachment=True
+                break;
+        if not hasatachment:
+            at=Atachment()
+            at.url='project.jpg'
+            at.project=p
+            deadline_project_dictionary['Atachment']=at
+        deadline_project_dictionary['Project']=p
+        deadline_project.append(deadline_project_dictionary)
     for p in popular_project_list:
+        popular_project_dictionary={}
         perc = (p.money_raised / p.funding_goal) * 100
         percentage = int(perc)
         diff = p.deadline - now
@@ -38,13 +57,22 @@ def index(request):
             daysLeft = 0
         setattr(p, 'toEnd', daysLeft)
         setattr(p, 'percentage', percentage)
-
+        atachments=Atachment.objects.filter(project=p)
+        hasatachment=False
+        for a in atachments:
+            if "jpg" in a.url or 'png' in a.url or 'gif' in a.url:
+                popular_project_dictionary['Atachment']=a
+                hasatachment=True
+                break;
+        if not hasatachment:
+            popular_project_dictionary['Atachment']=Atachment('project.jpg',p)
+        popular_project_dictionary['Project']=p
+        popular_project.append(popular_project_dictionary)
     context = RequestContext(request, {
-        'deadline_project_list': deadline_project_list,
-        'popular_project_list': popular_project_list,
+        'deadline_project_list': deadline_project,
+        'popular_project_list': popular_project,
     })
     return HttpResponse(template.render(context))
-
 
 def projects(request):
     order_by = request.GET.get('order_by', '-visit_counter')
@@ -58,6 +86,11 @@ def projects(request):
         if daysLeft < 0:
             daysLeft = 0
         setattr(p, 'toEnd', daysLeft)
+        ratinglist=Rating.objects.filter(project=p)
+        ratingsum=0
+        for r in ratinglist:
+            ratingsum+=r.rating
+        setattr(p,'overalrating',ratingsum/ratinglist.count())
     template = loader.get_template('projects.html')
     context = RequestContext(request, {
         'projects_list': projects_list,
@@ -249,17 +282,18 @@ def AddNewProject(request):
                     p.full_description = f.cleaned_data['description']
                     p.category = f.cleaned_data['category']
                     p.user =user
+                    p.deadline=datetime.strptime(request.POST['date'],"%d/%m/%Y")
                     Project.save(p)
                     if (request.FILES.getlist('file')!=""):
-                        if(not os.path.exists(p.title)):
-                            os.mkdir(p.title)
+                        if(not os.path.exists('main'+'\\'+STATIC_ROOT+str(p.id)+'\\'+p.title)):
+                             os.mkdir('main'+'\\'+STATIC_ROOT+str(p.id))
                         for file in request.FILES.getlist('file'):
-                            l = open(p.title+'\\'+file.name, 'wb+')
+                            l = open('main'+'\\'+STATIC_ROOT+str(p.id)+'\\'+file.name, 'wb+')
                             for chunk in file.chunks():
                                 l.write(chunk)
                             l.close()
                             atachment=Atachment()
-                            atachment.url=p.title+'\\'+file.name
+                            atachment.url=str(p.id)+'/'+file.name
                             atachment.project=p
                             Atachment.save(atachment)
                     for urlfile in request.POST.getlist('urlfile'):
@@ -283,8 +317,11 @@ def AddNewProject(request):
                             perkvalue.amount= int(perk)
                         else:
                             j=0
-                            if int(perk)>0:
-                                perkvalue.number_available=int(perk)
+                            try:
+                                if not '-' in perk:
+                                    perkvalue.number_available=int(perk)
+                            except:
+                                pass
                             perkvalue.save()
                             perkvalue=Perk()
                 return redirect('/', request)
@@ -300,7 +337,11 @@ def EditProject(request, project_id):
     fr = forms.ProjectPerks(prefix='perk')
     atachments=Atachment.objects.filter(project=proj)
     perks=Perk.objects.filter(project=proj).order_by('amount')
-    context = RequestContext(request, {'formset': f, 'form1': fr,'atachments':atachments,'perks':perks,'projectid':proj.id})
+    day=proj.deadline.strftime("%d")
+    month=proj.deadline.strftime("%m")
+    year=proj.deadline.strftime("%Y")
+    print(year)
+    context = RequestContext(request, {'formset': f, 'form1': fr,'atachments':atachments,'perks':perks,'projectid':proj.id,'day': day,'month':month,'year':year})
     if request.method == 'POST':
         return redirect('/', request)
     return render_to_response('EditProject.html',context)
@@ -317,6 +358,7 @@ def saveeditedproject(request,project_id):
                 p.full_description = f.cleaned_data['description']
                 p.category = f.cleaned_data['category']
                 p.user =user
+                p.deadline=p.deadline=datetime.strptime(request.POST['date'],"%d/%m/%Y")
                 p.save()
                 for removedperk in request.POST.getlist('removedperk'):
                     Perk.objects.get(id=int(removedperk))
@@ -325,18 +367,18 @@ def saveeditedproject(request,project_id):
                     if atachment.url.startswith('http') or atachment.url.__contains__('www'):
                         atachment.delete()
                     else:
-                        os.remove(atachment.url)
+                        os.remove(STATIC_ROOT+atachment.url)
                         atachment.delete()
                 if (request.FILES.getlist('file')!=""):
-                    if(not os.path.exists(p.title)):
+                    if(not os.path.exists('main'+'\\'+STATIC_ROOT+str(p.id))):
                         os.mkdir(p.title)
                     for file in request.FILES.getlist('file'):
-                        l = open(p.title+'\\'+file.name, 'wb+')
+                        l = open('main'+'\\'+STATIC_ROOT+str(p.id)+'\\'+file.name, 'wb+')
                         for chunk in file.chunks():
                             l.write(chunk)
                         l.close()
                         atachment=Atachment()
-                        atachment.url=p.title+'\\'+file.name
+                        atachment.url=p.id+'\\'+file.name
                         atachment.project=p
                         Atachment.save(atachment)
                 for urlfile in request.POST.getlist('urlfile'):
@@ -403,7 +445,8 @@ def Support(request,pro_id):
     template = loader.get_template('support.html')
     projekt = Project.objects.get(id=int(pro_id))
     perk_list = Perk.objects.filter(project=projekt).order_by('amount')
-    zmienna=perk_list[0].amount
+    if perk_list.count()>0:
+        zmienna=perk_list[0].amount
     choice_perk_list=Perk.objects.filter(project=projekt).order_by('amount')
     context = RequestContext(request, {
             'perk_list': perk_list,

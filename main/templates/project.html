@@ -16,10 +16,13 @@ Projekt
         {% if obs == True%}
             <a href="{% url 'delobservedp' proid %}" class="btn"><span class="glyphicon glyphicon-minus"></span>Przestań obserwować</a>
         {% endif %}
+        <a href="{% url 'support' project.id %}" class="btn btn-primary" role="button">Wesprzyj</a>
     {% endif %}
 
-    <a href="{% url 'stats' project.id %}" class=" btn btn-info btn-lg active" role="button" style="font-size: 14px;">Statystyki projektu</button></a>
+    <a href="{% url 'stats' project.id %}" class=" btn btn-primary" role="button" style="font-size: 14px;">Statystyki projektu</button></a>
     <br><br>
+<div class="col-md-16">
+   <div class="col-md-8">
     <div id="description">
         {{ project.full_description|safe }}
     </div>
@@ -28,15 +31,15 @@ Projekt
             {% if 'youtube.com' in atachment.url %}
                <iframe width="420" height="315" src="//www.youtube.com/embed/{{atachment.url|slice:"32:"}}" frameborder="0" allowfullscreen></iframe>
             {% elif 'jpg' in atachment.url %}
-                <img src="{{atachment.url}}" alt="załącznik">
+                <img src="{{ STATIC_URL }}{{atachment.url}}" width="300px" height="300px" alt="">
             {% else %}
                 <a href="{{ atachment.url }}">{{atachment.url}}</a>
             {% endif %}
             <br>
-
         {% endfor %}
     </div>
-    <div id="perks">
+</div>
+    <div id="perks" class="col-md-4">
         {% for perk in perks %}
             <div class="projectviewperk">
             <h4>{{perk.title}}</h4>
@@ -50,7 +53,10 @@ Projekt
             </div>
         {% endfor %}
     </div>
+</div>
+<div class="col-md-12">
     Projekt odwiedzilo już: {{ project.visit_counter|add:'1' }}
+    <br>
     <div id="rating">
     {% if request.session.login %}
         {% if userrate %}
@@ -76,7 +82,6 @@ Projekt
          Aby oceniń projekt zaloguj się
     {% endif %}
     </div>
-</div>
 Komentarze:
 {% for com in coms %}
 <div class="panel panel-default">
@@ -93,6 +98,7 @@ Nie ma żadnych komentarzy dla tego projektu
 {% endfor %}
 <div><a href="{% url 'addcoment' proid %}" class="btn btn-primary" role="button" style="width:100%"><h4>Dodaj
     komentarz</h4></a></div>
+</div>
 <script>
 $('#document').ready(function()
 {
