@@ -12,7 +12,7 @@ from main.models import Category, Project, Comment, User, Perk, Atachment, Donat
 from main.forms import UserUpdateForm, UserCommentForm, UserCategoryForm, UserForm,MessageForm
 from django.db.models import Q, Count
 from pp.settings import STATIC_ROOT,STATIC_URL
-
+import re
 
 def index(request):
     template = loader.get_template('index.html')
@@ -65,7 +65,10 @@ def index(request):
                 hasatachment=True
                 break;
         if not hasatachment:
-            popular_project_dictionary['Atachment']=Atachment('project.jpg',p)
+            at=Atachment()
+            at.url='project.jpg'
+            at.project=p
+            popular_project_dictionary['Atachment']=at
         popular_project_dictionary['Project']=p
         popular_project.append(popular_project_dictionary)
     context = RequestContext(request, {
@@ -252,18 +255,23 @@ def UserRegister(request):
             email=f.cleaned_data.get("email")
             password = f.cleaned_data.get("password")
             confirmpassword=f.cleaned_data.get("confirmpassword")
+            if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?!.*[\!\@\#\$\%\^\&\*\(\)\_\+\-\,\.\=])(?!.*\s).{6,}$',login) :
+                return render_to_response('register.html',RequestContext(request, {'formset': f, 'msg': 'Login powinien zawierać conajmniej 6 liter w tym conajmniej jedną  małą i jedną dużą literę'}))
             if password == confirmpassword:
+                if not re.match(r'^(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?!.*[\!\@\#\$\%\^\&\*\(\)\,\+\.\=])(?=.*[\_\-])(?!.*\s).{6,}$',password) :
+                    return render_to_response('register.html',RequestContext(request, {'formset': f, 'msg': 'Hasło powinno zawierać conajmniej 6 znaków w tym conajmniej jedną  małą i jedną wielką literę oraz jeden znak specjalny (- lub_) i jedną cyfrę'}))
                 try:
                     us = User.objects.get(login=f.data['login'])
+                    return render_to_response('register.html',RequestContext(request, {'formset': f, 'msg': 'Użytkownik o podanym loginie już istnieje'}))
                 except:
+                    if not re.match(r'^[\w\.]+@[\w\.]+\.[a-z]{2,3}$',email):
+                        return render_to_response('register.html', RequestContext(request, {'formset': f, 'msg': 'Podano nie poprawny adress email'}))
                     f.save()
                     return redirect('/', request)
-                return redirect('/rejestracja')
-                return redirect('/', request)
             else:
-                return redirect('/rejestracja')
+                return render_to_response('register.html',RequestContext(request, {'formset': f, 'msg': 'Hasła nie są takie same'}))
     else:
-        return render_to_response('register.html', context)
+        return render_to_response('register.html',context)
 
 def AddNewProject(request):
 
@@ -341,7 +349,7 @@ def EditProject(request, project_id):
     month=proj.deadline.strftime("%m")
     year=proj.deadline.strftime("%Y")
     print(year)
-    context = RequestContext(request, {'formset': f, 'form1': fr,'atachments':atachments,'perks':perks,'projectid':proj.id,'day': day,'month':month,'year':year})
+    context = RequestContext(request, {'formset': f, 'form1': fr,'atachments':atachments,'perks':perks,'project':proj, 'projectid':proj.id,'day': day,'month':month,'year':year})
     if request.method == 'POST':
         return redirect('/', request)
     return render_to_response('EditProject.html',context)
@@ -358,7 +366,7 @@ def saveeditedproject(request,project_id):
                 p.full_description = f.cleaned_data['description']
                 p.category = f.cleaned_data['category']
                 p.user =user
-                p.deadline=p.deadline=datetime.strptime(request.POST['date'],"%d/%m/%Y")
+                p.deadline=p.deadline=datetime.strptime(request.POST['date'],"%m/%d/%Y")
                 p.save()
                 for removedperk in request.POST.getlist('removedperk'):
                     Perk.objects.get(id=int(removedperk))
@@ -413,18 +421,21 @@ def saveeditedproject(request,project_id):
     else:
         return redirect('/logowanie', request)
 def Signin(request):
+
     if request.method == 'POST':
         c = forms.Signin(request.POST)
         try:
-            us = User.objects.get(login=c.data['login'],password=c.data['password'])
+            us = User.objects.get(login=c.data['login'])
+            if us.password!=c.data['password']:
+                return render_to_response('signin.html', RequestContext(request, {'formset': c,'msg':'Błędne  hasło'}))
         except:
-            return redirect('/logowanie')
+            return render_to_response('signin.html', RequestContext(request, {'formset': c,'msg':'Błędny login lub hasło'}))
         request.session['user'] = us.id
         request.session['login'] = us.login
         request.session['type'] = us.type
         return redirect('/')
     else:
-        f = forms.Signin
+        f = forms.Signin()
         return render_to_response('signin.html', RequestContext(request, {'formset': f}))
 
 
@@ -555,7 +566,7 @@ def UserUpdate(request, uid=-1):
         form.save()
         return redirect('/')
     else:
-        return render_to_response('updateCat.html', RequestContext(request, {'formset': form}))
+        return render_to_response('user.html', RequestContext(request, {'formset': form}))
 
 def CommentUpdate(request, uid=-1):
     us = Comment.objects.get(id=int(uid))
@@ -707,7 +718,23 @@ def editUser(request):
         us = User.objects.get(id=user_id)
         form = UserForm(request.POST or None, instance=us)
     if form.is_valid():
-        form.save()
+        if us.password==form.cleaned_data['oldpassword']:
+            if(us.email!=str(form.cleaned_data['email'])):
+                us.email=form.cleaned_data['email']
+            if form.cleaned_data['newpassword']!='':
+                password=form.cleaned_data['newpassword']
+                if password==form.cleaned_data['confirmpassword']:
+                    if re.match(r'^(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?!.*[\!\@\#\$\%\^\&\*\(\)\,\+\.\=])(?=.*[\_\-])(?!.*\s).{6,}$',password) :
+                        us.password=password
+                    else:
+                        return render_to_response('user.html', RequestContext(request, {'formset': form, 'msg': 'Nowe hasło powinno zawierać conajmniej 6 znaków w tym conajmniej jedną  małą i jedną wielką literę oraz jeden znak specjalny (- lub_) i jedną cyfrę'}))
+
+                else:
+                    return render_to_response('user.html', RequestContext(request, {'formset': form, 'msg':'Nowe hasło nie zgadza się z potwierdzeniem'}))
+
+        else:
+            return render_to_response('user.html', RequestContext(request, {'formset': form, 'msg':'Błędne hasło'}))
+        us.save()
         return redirect('/')
     else:
         return render_to_response('user.html', RequestContext(request, {'formset': form}))
@@ -777,3 +804,5 @@ def stats(request, pro_id):
     return render_to_response('stats.html', RequestContext(request, {'liczbaWplatLabel': liczbaWplatLabel, 'liczbaWplatDane':liczbaWplatDane, 'liczbaWplatMax': liczbaWplatMax,
                                                                      'kwotaWplatLabel': kwotaWplatLabel, 'kwotaWplatDane':kwotaWplatDane, 'kwotaWplatMax': kwotaWplatMax,
                                                                      'wizytyLabel': wizytyLabel, 'wizytyDane':wizytyDane, 'wizytyMax': wizytyMax}))
+def addsupport(request):
+    return render_to_response("")

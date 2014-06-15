@@ -26,7 +26,7 @@ Edytuj projekt
                 <td>{{ formset.funding_goal }}</td></tr>
             </table>
             <label>Pełny opis projektu:</label>
-            {{ formset.description}}
+            {{ formset.description|safe}}
             <div>
                 <div id="fulldescription" class="summernote"></div>
             </div>
@@ -140,7 +140,7 @@ Edytuj projekt
           });
           giftamountchange();
           $('[name=date]').val('{{ month }}/{{ day }}/{{ year }}');
-          $('#fulldescription').code($('#id_project-description').val());
+          $('#fulldescription').code('{{ project.full_description|safe }}');
           $('#date_Day_ID').val({{day}});
           $('#date_Month_ID').val({{month}});
           $('#date_Year_ID').val({{year}});

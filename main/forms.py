@@ -42,6 +42,9 @@ class ComentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ('content',)
+        labels={
+            'content': ('Komentarz'),
+        }
 
 class Signin(forms.ModelForm):
     def __init__(self,*args,**kwargs):
@@ -58,6 +61,10 @@ class Signin(forms.ModelForm):
             'password': 'Hasło'
         }
 class SupportForm(forms.ModelForm):
+    def __init__(self,*args,**kwargs):
+        super(SupportForm, self).__init__(*args,**kwargs)
+        self.fields['amount'].widget.attrs['required']=''
+        self.fields['amount'].widget.attrs['min']='0,01'
     class Meta:
         model=Perk
         fields=('amount',)
@@ -70,6 +77,7 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
 
+
 class UserCommentForm(forms.ModelForm):
     class Meta:
         model = Comment
@@ -81,7 +89,10 @@ class UserCategoryForm(forms.ModelForm):
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
-        fields=('email', 'password',)
+        fields=('email', )
+    newpassword=forms.CharField(label='Nowe hasło:', widget=forms.PasswordInput())
+    confirmpassword = forms.CharField(label='Powtórz nowe hasło:', widget=forms.PasswordInput())
+    oldpassword = forms.CharField(label='Zatwierdź zmiany obecnym hasłem:', widget=forms.PasswordInput(attrs={'required': ''}))
 
 class MessageForm(forms.Form):
     subject = forms.CharField(label='Tytuł', max_length=80, widget=forms.TextInput(attrs={'size': '80'}))

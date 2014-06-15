@@ -35,7 +35,7 @@
             {% for projectdictionary in deadline_project_list %}
             <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
-                    <a href="{% url 'project' projectdictionary.Project.id %}"><img  src="{{STATIC_URL }}{{ projectdictionary.Atachment.url }}" alt="Projekt"></a>
+                    <a href="{% url 'project' projectdictionary.Project.id %}"><img width="200px" height="300px" src="{{STATIC_URL }}{{ projectdictionary.Atachment.url }}" alt="Projekt"></a>
                     <div class="caption">
                         <h3><a href="{% url 'project' projectdictionary.Project.id %}">{{projectdictionary.Project.title}}</a></h3>
                         <p>{{projectdictionary.Project.short_description}} </p>
@@ -56,8 +56,6 @@
         </div>
     </div>
 </div>
-
-
 <div class="panel panel-info">
     <div class="panel-heading">
         <h3 class="panel-title">Najpopularniejsze projekty</h3>
@@ -68,7 +66,7 @@
             {% for projectdictionary  in popular_project_list %}
             <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
-                        <a href="{% url 'project' projectdictionary.Project.id %}"><img  src="{{STATIC_URL }}{{ projectdictionary.Atachment.url }}" alt="Projekt"></a>
+                        <a href="{% url 'project' projectdictionary.Project.id %}"><img width="200px" height="300px" src="{{STATIC_URL }}{{ projectdictionary.Atachment.url }}" alt="Projekt"></a>
                     <div class="caption">
                         <h3><a href="{% url 'project' projectdictionary.Project.id %}">{{projectdictionary.Project.title}}</a></h3>
                         <p>{{projectdictionary.Project.short_description}} </p>

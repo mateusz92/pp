@@ -2,11 +2,13 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Nowa wiadomość
+    Ustawienia użytkownika
 {% endblock %}
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}user.css">
     <div>
+    <h1>Ustawienia użytkownika</h1>
+        <label style="color: red">{{ msg }}</label>
         <form method="post" action="">
             {% csrf_token %}
             <table>

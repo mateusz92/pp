@@ -7,6 +7,7 @@ Rejestracja użytkownika
         <form method="post" action="">
             {% csrf_token %}
             <h1>Rejestracja</h1>
+            <label style="color: red">{{ msg }}</label>
             <table>
                 {{ formset }}
                 </br>

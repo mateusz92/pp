@@ -17,9 +17,12 @@ Projekt
             <a href="{% url 'delobservedp' proid %}" class="btn"><span class="glyphicon glyphicon-minus"></span>Przestań obserwować</a>
         {% endif %}
         <a href="{% url 'support' project.id %}" class="btn btn-primary" role="button">Wesprzyj</a>
+       {%if project.user.id == request.session.user %}
+            <a href="{% url 'editproject' project.id %}" class="btn btn-primary" role="button">Edytuj projekt</a>
+        {% endif %}
     {% endif %}
 
-    <a href="{% url 'stats' project.id %}" class=" btn btn-primary" role="button" style="font-size: 14px;">Statystyki projektu</button></a>
+    <a href="{% url 'stats' project.id %}" class=" btn btn-primary" role="button" style="font-size: 14px;">Statystyki projektu</a>
     <br><br>
 <div class="col-md-16">
    <div class="col-md-8">
@@ -55,12 +58,12 @@ Projekt
     </div>
 </div>
 <div class="col-md-12">
-    Projekt odwiedzilo już: {{ project.visit_counter|add:'1' }}
+    Projekt wyświetlono już: <b>{{ project.visit_counter|add:'1' }} razy</b><br>
     <br>
     <div id="rating">
     {% if request.session.login %}
         {% if userrate %}
-        Ocena projektu:
+        <br><b>Ocena projektu:</b>
         <nobr>
                 <img id="star0" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="1" >
                 <img id="star1" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="2" >
@@ -68,14 +71,14 @@ Projekt
                 <img id="star3" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="4" >
                 <img id="star4" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="5" >
         </nobr><br>
-        {% else  %}
-                Oceń:
+        {% else %}
+                <br><b>Oceń:</b>
                 <nobr>
-                <img id="star0" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="1" onmouseover="starsmouseover(1);" onclick="starsclick(1);">
-                <img id="star1" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="2" onmouseover="starsmouseover(2);" onclick="starsclick(2);">
-                <img id="star2" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="3" onmouseover="starsmouseover(3);" onclick="starsclick(3);">
-                <img id="star3" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="4" onmouseover="starsmouseover(4);" onclick="starsclick(4);">
-                <img id="star4" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="5" onmouseover="starsmouseover(5);" onclick="starsclick(5);">
+                <img id="star0" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="1" onmouseout="starsmouseover(0);" onmouseover="starsmouseover(1);"  onclick="starsclick(1);">
+                <img id="star1" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="2" onmouseout="starsmouseover(0);" onmouseover="starsmouseover(2);" onclick="starsclick(2);">
+                <img id="star2" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="3" onmouseout="starsmouseover(0);" onmouseover="starsmouseover(3);" onclick="starsclick(3);">
+                <img id="star3" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="4" onmouseout="starsmouseover(0);" onmouseover="starsmouseover(4);" onclick="starsclick(4);">
+                <img id="star4" width="20" height="20" src="{{ STATIC_URL }}emptystarr.png" alt="5" onmouseout="starsmouseover(0);" onmouseover="starsmouseover(5);" onclick="starsclick(5);">
                 </nobr><br>
         {% endif %}
     {%else%}
@@ -96,9 +99,10 @@ Komentarze:
 {% empty %}
 Nie ma żadnych komentarzy dla tego projektu
 {% endfor %}
+{% if request.session.login %}
 <div><a href="{% url 'addcoment' proid %}" class="btn btn-primary" role="button" style="width:100%"><h4>Dodaj
     komentarz</h4></a></div>
-</div>
+{% endif %}
 <script>
 $('#document').ready(function()
 {
